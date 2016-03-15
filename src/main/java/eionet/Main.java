@@ -3,7 +3,6 @@ package eionet;
 import eionet.converters.ConvertException;
 import eionet.converters.Converter;
 import eionet.converters.CustomConverter;
-import eionet.converters.SjConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
