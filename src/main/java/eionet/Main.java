@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
+import java.util.Properties;
 
 /**
  * @author George Sofianos
@@ -17,14 +18,10 @@ public class Main {
 
     public static void main(String[] args) {
         Converter converter;
-        //if (args[3] == "old") {
-        //    SjConverter conv = new SjConverter();
-        //    String[] ar = {"net.ucanaccess.jdbc.UcanaccessDriver", "jdbc:ucanaccess://" + args[0], "n", "n", args[1], "--batch", "all", "--ignore-nodata"};
-        //    conv.nonStaticMain(ar);
-        // }
+        Properties props = System.getProperties();
+        int batchSize = Integer.parseInt(props.getProperty("batchSize", "10000"));
         if (args.length == 2) {
-            converter = new CustomConverter();
-            converter.setDriver("net.ucanaccess.jdbc.UcanaccessDriver");
+            converter = new CustomConverter(batchSize);
             converter.setUrl("jdbc:ucanaccess://" + args[0]);
             converter.setInput(args[1]);
             try {

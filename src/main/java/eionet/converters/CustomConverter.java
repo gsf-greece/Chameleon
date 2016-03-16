@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author George Sofianos
@@ -23,10 +24,14 @@ public class CustomConverter implements Converter {
     private String driver;
     private String url;
     private String input;
-    private final int batchSize = 10000;
+    private final int batchSize;
     private Statement st;
     private Connection connection;
     private String query;
+
+    public CustomConverter(int batchSize) {
+        this.batchSize = batchSize;
+    }
 
 
     private Connection getConnection(String url) throws SQLException {
@@ -56,6 +61,8 @@ public class CustomConverter implements Converter {
     private void executeStatements() throws SQLException, IOException {
         connection = this.getConnection(url);
         log.debug("Connected to database");
+        log.info("Executing SQL statements now...");
+        long duration = System.currentTimeMillis();
         connection.setAutoCommit(false);
         st = connection.createStatement();
         if (connection != null) {
@@ -63,6 +70,10 @@ public class CustomConverter implements Converter {
             int count = 0;
             while ((query = inputFile.readLine()) != null) {
                 query = query.trim();
+                if (query.isEmpty()) {
+                    log.debug("Ignored empty line");
+                    continue;
+                }
                 st.addBatch(query);
                 if (++count % batchSize == 0) {
                     st.executeBatch();
@@ -74,6 +85,11 @@ public class CustomConverter implements Converter {
 
             connection.commit();
             log.debug("Transaction committed successfully");
+            duration = System.currentTimeMillis() - duration;
+            log.info("SQL statements executed successfully, time it took to finish: " + String.format("%d minutes, %d seconds",
+                    TimeUnit.MILLISECONDS.toMinutes(duration), TimeUnit.MILLISECONDS.toSeconds(duration) -
+                    TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)))
+            );
         }
     }
 
@@ -83,6 +99,7 @@ public class CustomConverter implements Converter {
     public void cleanup() {
         try {
             connection.close();
+            log.debug("Connection to database closed");
         } catch (SQLException ex) {
             log.error("An error has occured while closing the connection: " + ex);
         }

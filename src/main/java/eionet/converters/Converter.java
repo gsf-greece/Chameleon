@@ -16,4 +16,5 @@ public interface Converter {
     void setUrl(String s);
 
     void setInput(String arg);
+
 }
